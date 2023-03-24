@@ -80,8 +80,22 @@ function createPodSpec(
   secretName?: string
 ): k8s.V1Container {
   const podContainer = new k8s.V1Container()
+  const resources = new k8s.V1ResourceRequirements()
+  const limit_cpu = process.env.ACTIONS_POD_RESOURCE_LIMIT_CPU
+  const limit_memory = process.env.ACTIONS_POD_RESOURCE_LIMIT_MEMORY
+  const request_memory = process.env.ACTIONS_POD_RESOURCE_REQUEST_MEMORY
+  const request_cpu = process.env.ACTIONS_POD_RESOURCE_REQUEST_CPU
+  resources.requests = {
+    ...(request_cpu != undefined) && {cpu: request_cpu},
+    ...(request_memory != undefined) && {memory: request_memory},
+  }
+  resources.limits = {
+    ...(limit_cpu != undefined) && {cpu: limit_cpu},
+    ...(limit_memory != undefined) && {memory: limit_memory},
+  }
   podContainer.name = JOB_CONTAINER_NAME
   podContainer.image = container.image
+  podContainer.resources = resources
 
   const { entryPoint, entryPointArgs } = container
   container.entryPoint = 'sh'
